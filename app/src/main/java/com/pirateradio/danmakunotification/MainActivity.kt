@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.Window
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,12 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,17 +29,43 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.pirateradio.danmakunotification.ui.theme.DanmakuNotificationTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Set up window properties
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Configure status and navigation bar
+        setupSystemBars(window)
         setContent {
             DanmakuNotificationTheme {
                 MainScreen()
             }
         }
+    }
+
+    private fun setupSystemBars(window: Window) {
+        // Get the WindowInsetsController
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        // Set status bar text/icons appearance based on theme
+        controller.isAppearanceLightStatusBars = !isDarkTheme()
+        // Set navigation bar to transparent
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        // Ensure navigation bar icons are visible based on theme
+        controller.isAppearanceLightNavigationBars = !isDarkTheme()
+        // Remove any scrim or background from navigation bar (API 29+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
+    }
+
+    private fun isDarkTheme(): Boolean {
+        // Simple check for dark theme based on system settings
+        return resources.configuration.uiMode and
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
     }
 }
 
@@ -70,6 +93,7 @@ fun MainScreen() {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+
                     .padding(vertical = 24.dp)
             ) {
                 Row(
@@ -97,7 +121,7 @@ fun MainScreen() {
                             color = Color.White,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            modifier = Modifier.align(Alignment.Center) // Ensure proper vertical centering
+                            modifier = Modifier.align(Alignment.Center)
                         )
                     }
                 }
@@ -182,7 +206,7 @@ fun MainScreen() {
                     .clickable {
                         Toast.makeText(context, "打开应用选择页面", Toast.LENGTH_SHORT).show()
                     }
-                    .padding(vertical = 16.dp), // Increased vertical padding
+                    .padding(vertical = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -258,7 +282,7 @@ fun MainScreen() {
                     .clickable {
                         Toast.makeText(context, "打开关于页面", Toast.LENGTH_SHORT).show()
                     }
-                    .padding(vertical = 16.dp), // Increased vertical padding
+                    .padding(vertical = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {

@@ -70,7 +70,6 @@ fun MainScreen() {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceContainer)
                     .padding(vertical = 24.dp)
             ) {
                 Row(
@@ -90,14 +89,15 @@ fun MainScreen() {
                             .height(24.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color.DarkGray)
-                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                            .padding(horizontal = 12.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "1.0",
                             color = Color.White,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.align(Alignment.Center) // Ensure proper vertical centering
                         )
                     }
                 }
@@ -156,10 +156,8 @@ fun MainScreen() {
                 )
                 Button(
                     onClick = {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
-                            context.startActivity(intent)
-                        }
+                        val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                        context.startActivity(intent)
                     }
                 ) {
                     Text("去开启")
@@ -184,7 +182,7 @@ fun MainScreen() {
                     .clickable {
                         Toast.makeText(context, "打开应用选择页面", Toast.LENGTH_SHORT).show()
                     }
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 16.dp), // Increased vertical padding
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -260,7 +258,7 @@ fun MainScreen() {
                     .clickable {
                         Toast.makeText(context, "打开关于页面", Toast.LENGTH_SHORT).show()
                     }
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 16.dp), // Increased vertical padding
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {

@@ -54,8 +54,8 @@ class NotificationListener : NotificationListenerService() {
             }
 
             val params = WindowManager.LayoutParams(
-                WindowManager.LayoutParams.MATCH_PARENT, // 全屏宽度
-                WindowManager.LayoutParams.WRAP_CONTENT, // 固定高度
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
                 windowType,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                         WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or

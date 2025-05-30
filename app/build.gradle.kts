@@ -43,6 +43,9 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat) // 新增：支持 View 系统
     implementation(libs.material) // 新增：支持 Material Components
+
+    implementation(libs.androidx.material.icons.extended) // 添加图标核心库
+
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))

@@ -1,11 +1,14 @@
 package com.pirateradio.danmakunotification
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
+import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import android.view.WindowManager
 import android.view.Gravity
+import android.view.WindowManager
 import android.graphics.PixelFormat
-import android.animation.ObjectAnimator
 
 class NotificationListener : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -15,29 +18,55 @@ class NotificationListener : NotificationListenerService() {
         showDanmaku(packageName, title, text)
     }
 
-    override fun onNotificationRemoved(sbn: StatusBarNotification) {
-        // 可选
-    }
+    override fun onNotificationRemoved(sbn: StatusBarNotification) {}
 
     private fun showDanmaku(packageName: String, title: String, text: String) {
-        val danmakuView = DanmakuView(this)
-        danmakuView.setData(packageName, title, text)
-        val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.LEFT
-            x = 0
-            y = 100
-        }
-        wm.addView(danmakuView, params)
-        ObjectAnimator.ofFloat(danmakuView, "translationX", 0f, 1000f).apply {
-            duration = 5000
-            start()
+        try {
+            val danmakuView = DanmakuView(this)
+            danmakuView.setData(packageName, title, text)
+
+            // 获取屏幕宽度
+            val wm = getSystemService(WINDOW_SERVICE) as WindowManager
+            val screenWidth = resources.displayMetrics.widthPixels
+
+            // 动态选择 WindowManager 类型，兼容 API 24
+            val windowType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            } else {
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+            }
+
+            val params = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                windowType,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
+            ).apply {
+                gravity = Gravity.TOP or Gravity.END // 使用 Gravity.END 替代 RIGHT
+                x = 0  // 初始位置贴右边
+                y = 100  // 距离顶部 100px
+            }
+
+            wm.addView(danmakuView, params)
+
+            // 动画：从右到左横跨屏幕
+            ObjectAnimator.ofFloat(danmakuView, "translationX", 0f, -(screenWidth + 450f)).apply {
+                duration = 5000
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        try {
+                            wm.removeView(danmakuView)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                })
+                start()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

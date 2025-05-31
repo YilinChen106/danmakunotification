@@ -11,7 +11,7 @@
     <string name="version">1.0</string>
     <string name="permission_settings">权限设置</string>
     <string name="permission_description">“弹幕通知”需要必要的权限才能正常工作。</string>
-    <string name="enable_notification_access">开启通知权限</string>
+    <string name="enable_notification_access">开启通知使用权限</string>
     <string name="go_enable">去开启</string>
     <string name="enable_overlay_permission">开启悬浮窗权限</string>
     <string name="preference_settings">偏好设置</string>
@@ -24,4 +24,13 @@
     <string name="reconnect_notification">重新连接通知服务</string>
     <string name="reconnect_success">已尝试重新连接通知服务</string>
     <string name="enable_notification_prompt">请启用通知权限以使用弹幕通知</string>
+
+    <string name="about_description">“弹幕通知”将通知以悬浮弹幕形式显示在屏幕上，带来独特的通知体验！</string>
+    <string name="developer_info">由 Yilin Chen 开发。开源项目托管于 GitHub。</string>
+    <string name="developer_avatar">开发者头像</string>
+    <string name="star_project">给项目点 Star</string>
+    <string name="contribute_code">贡献代码</string>
+    <string name="navigate">导航</string>
+
+
 </resources>

@@ -23,4 +23,13 @@
     <string name="reconnect_notification">Reconnect Notification Service</string>
     <string name="reconnect_success">Attempted to reconnect notification service</string>
     <string name="enable_notification_prompt">Please enable notification permission to use danmaku notifications</string>
+
+    <string name="about_description">Danmaku Notification displays notifications as floating danmaku on your screen. Enjoy a unique notification experience!</string>
+    <string name="developer_info">Developed by Yilin Chen. Open-source project hosted on GitHub.</string>
+    <string name="developer_avatar">Developer Avatar</string>
+    <string name="star_project">Star the Project</string>
+    <string name="contribute_code">Contribute Code</string>
+    <string name="navigate">Navigate</string>
+
+
 </resources>

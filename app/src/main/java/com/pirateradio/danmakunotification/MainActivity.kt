@@ -35,7 +35,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import android.app.NotificationManager
 import android.content.Context
 import android.service.notification.NotificationListenerService
-import androidx.annotation.RequiresApi
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -52,12 +51,12 @@ class MainActivity : ComponentActivity() {
                 NavHost(navController = navController, startDestination = "main") {
                     composable("main") { MainScreen(navController) }
                     composable("app_selection") { AppSelectionScreen(navController, LocalContext.current) }
+                    composable("about") { AboutScreen(navController) }
                 }
             }
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O_MR1)
     override fun onResume() {
         super.onResume()
         checkAndRebindNotificationListener()
@@ -79,7 +78,6 @@ class MainActivity : ComponentActivity() {
                 android.content.res.Configuration.UI_MODE_NIGHT_YES
     }
 
-    @RequiresApi(Build.VERSION_CODES.O_MR1)
     private fun checkAndRebindNotificationListener() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val componentName = ComponentName(this, NotificationListener::class.java)
@@ -93,7 +91,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun MainScreen(navController: androidx.navigation.NavController) {
     val context = LocalContext.current
@@ -168,7 +166,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
-                            contentDescription = "重新连接通知服务",
+                            contentDescription = stringResource(R.string.reconnect_notification),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -264,7 +262,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                 )
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = "Navigate",
+                    contentDescription = stringResource(R.string.navigate),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -272,7 +270,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
             // 仅横屏
             Row(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -329,7 +327,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        Toast.makeText(context, "打开关于页面", Toast.LENGTH_SHORT).show()
+                        navController.navigate("about")
                     }
                     .padding(vertical = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -341,7 +339,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                 )
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = "Navigate",
+                    contentDescription = stringResource(R.string.navigate),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

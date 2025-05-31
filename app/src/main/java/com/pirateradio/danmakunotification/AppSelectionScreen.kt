@@ -22,9 +22,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.navigation.NavController
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,11 +44,11 @@ fun AppSelectionScreen(navController: NavController, context: Context) {
     } }
     val scope = rememberCoroutineScope()
 
-    // 异步加载应用列表
+    // 异步加载应用列表（优先从缓存加载）
     LaunchedEffect(Unit) {
         scope.launch {
             isLoading = true
-            apps = withContext(Dispatchers.IO) { getInstalledApps(context) }
+            apps = withContext(Dispatchers.IO) { loadCachedApps(context) }
             isLoading = false
             Log.d("AppSelectionScreen", "Loaded ${apps.size} apps")
         }
@@ -60,7 +64,7 @@ fun AppSelectionScreen(navController: NavController, context: Context) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "选择弹幕通知应用",
+                        text = stringResource(R.string.select_danmaku_apps),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.SemiBold
@@ -71,7 +75,7 @@ fun AppSelectionScreen(navController: NavController, context: Context) {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -96,11 +100,11 @@ fun AppSelectionScreen(navController: NavController, context: Context) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                placeholder = { Text("搜索应用") },
+                placeholder = { Text(stringResource(R.string.search_apps)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Filled.Search,
-                        contentDescription = "搜索"
+                        contentDescription = stringResource(R.string.search)
                     )
                 },
                 singleLine = true,
@@ -129,7 +133,8 @@ fun AppSelectionScreen(navController: NavController, context: Context) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = if (searchQuery.isEmpty()) "未找到可用的应用" else "没有匹配的应用",
+                            text = if (searchQuery.isEmpty()) stringResource(R.string.no_apps_found)
+                            else stringResource(R.string.no_matching_apps),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -203,12 +208,11 @@ fun AppItem(app: AppInfo, isEnabled: Boolean, onToggle: (Boolean) -> Unit) {
     }
 }
 
-private fun getInstalledApps(context: Context): List<AppInfo> {
+fun getInstalledApps(context: Context): List<AppInfo> {
     val pm = context.packageManager
     val apps = try {
         pm.getInstalledApplications(PackageManager.GET_META_DATA)
             .filter { appInfo ->
-                // 仅过滤本应用
                 appInfo.packageName != context.packageName
             }
             .map { appInfo ->
@@ -227,18 +231,66 @@ private fun getInstalledApps(context: Context): List<AppInfo> {
         Log.e("AppSelectionScreen", "Error loading apps: ${e.message}")
         emptyList()
     }
-    Log.d("AppSelectionScreen", "Filtered apps: ${apps.map { it.packageName }}")
+    Log.d("AppSelectionScreen", "Fetched apps: ${apps.map { it.packageName }}")
     return apps
 }
 
+private fun loadCachedApps(context: Context): List<AppInfo> {
+    val prefs = context.getSharedPreferences("danmaku_prefs", Context.MODE_PRIVATE)
+    val gson = Gson()
+    val cachedJson = prefs.getString("cached_apps", null)
+
+    // 尝试加载缓存
+    if (cachedJson != null) {
+        try {
+            val type = object : TypeToken<List<AppInfoCache>>() {}.type
+            val cachedApps: List<AppInfoCache> = gson.fromJson(cachedJson, type)
+            val pm = context.packageManager
+            // 将缓存转换为 AppInfo，加载图标
+            val apps = cachedApps.mapNotNull { cache ->
+                try {
+                    AppInfo(
+                        name = cache.name,
+                        packageName = cache.packageName,
+                        icon = pm.getApplicationIcon(cache.packageName)
+                    )
+                } catch (e: PackageManager.NameNotFoundException) {
+                    null // 应用已卸载，跳过
+                }
+            }
+            Log.d("AppSelectionScreen", "Loaded ${apps.size} apps from cache")
+            if (apps.isNotEmpty()) return apps
+        } catch (e: Exception) {
+            Log.e("AppSelectionScreen", "Error parsing cache: ${e.message}")
+        }
+    }
+
+    // 缓存无效或为空，重新加载并保存
+    val apps = getInstalledApps(context)
+    saveAppsToCache(context, apps)
+    return apps
+}
+
+fun saveAppsToCache(context: Context, apps: List<AppInfo>) {
+    val prefs = context.getSharedPreferences("danmaku_prefs", Context.MODE_PRIVATE)
+    val gson = Gson()
+    // 转换为可序列化的格式（不包括图标）
+    val cache = apps.map { AppInfoCache(it.name, it.packageName) }
+    val json = gson.toJson(cache)
+    prefs.edit {
+        putString("cached_apps", json)
+    }
+    Log.d("AppSelectionScreen", "Saved ${apps.size} apps to cache")
+}
+
+data class AppInfoCache(
+    val name: String,
+    val packageName: String
+)
+
 private fun loadEnabledApps(context: Context): Set<String> {
     val prefs = context.getSharedPreferences("danmaku_prefs", Context.MODE_PRIVATE)
-    // 默认启用的预设应用
-    val predefinedApps = setOf(
-        "com.tencent.mm", // 微信
-        "com.tencent.mobileqq" // QQ
-    )
-    // 如果没有保存的应用列表，初始化为预设应用
+    val predefinedApps = setOf("com.tencent.mm", "com.tencent.mobileqq")
     if (!prefs.contains("enabled_apps")) {
         prefs.edit {
             putStringSet("enabled_apps", predefinedApps)

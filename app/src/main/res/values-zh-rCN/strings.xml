@@ -1,4 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">弹幕通知</string>
+    <string name="select_danmaku_apps">选择弹幕通知应用</string>
+    <string name="back">返回</string>
+    <string name="search">搜索</string>
+    <string name="search_apps">搜索应用</string>
+    <string name="no_apps_found">未找到可用的应用</string>
+    <string name="no_matching_apps">没有匹配的应用</string>
+    <string name="danmaku_notification">弹幕通知</string>
+    <string name="version">1.0</string>
+    <string name="permission_settings">权限设置</string>
+    <string name="permission_description">“弹幕通知”需要必要的权限才能正常工作。</string>
+    <string name="enable_notification_access">开启通知权限</string>
+    <string name="go_enable">去开启</string>
+    <string name="enable_overlay_permission">开启悬浮窗权限</string>
+    <string name="preference_settings">偏好设置</string>
+    <string name="enabled_danmaku_apps">开启弹幕通知的应用</string>
+    <string name="landscape_only">仅在横屏下开启弹幕通知</string>
+    <string name="auto_dnd">横屏下自动开启免打扰</string>
+    <string name="dnd_note">弹幕通知仍旧生效。请注意，若其他应用有相似的功能，可能会产生冲突。</string>
+    <string name="about">关于</string>
+    <string name="about_app">关于本应用</string>
+    <string name="reconnect_notification">重新连接通知服务</string>
+    <string name="reconnect_success">已尝试重新连接通知服务</string>
+    <string name="enable_notification_prompt">请启用通知权限以使用弹幕通知</string>
 </resources>

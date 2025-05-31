@@ -46,6 +46,7 @@ dependencies {
 
     implementation(libs.androidx.material.icons.extended) // 添加图标核心库
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.gson)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

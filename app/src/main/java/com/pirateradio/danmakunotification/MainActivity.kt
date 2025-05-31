@@ -2,7 +2,6 @@ package com.pirateradio.danmakunotification
 
 import android.content.ComponentName
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.Window
@@ -27,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,6 +34,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.service.notification.NotificationListenerService
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.IconButton
@@ -45,9 +46,7 @@ import com.pirateradio.danmakunotification.ui.theme.DanmakuNotificationTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 设置窗口属性
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        // 配置状态栏和导航栏
         setupSystemBars(window)
         setContent {
             DanmakuNotificationTheme {
@@ -63,27 +62,20 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O_MR1)
     override fun onResume() {
         super.onResume()
-        // 在恢复时检查并重新绑定 NotificationListenerService
         checkAndRebindNotificationListener()
     }
 
     private fun setupSystemBars(window: Window) {
-        // 获取 WindowInsetsController
         val controller = WindowCompat.getInsetsController(window, window.decorView)
-        // 根据主题设置状态栏文字/图标颜色
         controller.isAppearanceLightStatusBars = !isDarkTheme()
-        // 设置导航栏透明
         window.navigationBarColor = android.graphics.Color.TRANSPARENT
-        // 根据主题设置导航栏图标颜色
         controller.isAppearanceLightNavigationBars = !isDarkTheme()
-        // 移除导航栏背景（API 29+）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
     }
 
     private fun isDarkTheme(): Boolean {
-        // 检查系统是否为深色主题
         return resources.configuration.uiMode and
                 android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
                 android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -95,7 +87,6 @@ class MainActivity : ComponentActivity() {
         val componentName = ComponentName(this, NotificationListener::class.java)
         val isEnabled = notificationManager.isNotificationListenerAccessGranted(componentName)
         if (isEnabled) {
-            // 如果权限已授予但服务未运行，尝试重新绑定
             NotificationListenerService.requestRebind(componentName)
         } else {
             // 提示用户启用通知权限
@@ -135,7 +126,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "弹幕通知",
+                        text = stringResource(R.string.danmaku_notification),
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Bold
@@ -151,11 +142,10 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "1.0",
+                            text = stringResource(R.string.version, "1.0"),
                             color = Color.White,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.align(Alignment.Center)
+                            fontWeight = FontWeight.Medium
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
@@ -177,7 +167,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
 
             // 权限设置
             Text(
-                text = "权限设置",
+                text = stringResource(R.string.permission_settings),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
@@ -186,7 +176,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "“弹幕通知”需要必要的权限才能正常工作。",
+                text = stringResource(R.string.permission_description),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -201,7 +191,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "开启通知权限",
+                    text = stringResource(R.string.enable_notification_access),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Button(
@@ -210,7 +200,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                         context.startActivity(intent)
                     }
                 ) {
-                    Text("去开启")
+                    Text(stringResource(R.string.go_enable))
                 }
             }
 
@@ -223,7 +213,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "开启悬浮窗权限",
+                    text = stringResource(R.string.enable_overlay_permission),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Button(
@@ -232,13 +222,13 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                         context.startActivity(intent)
                     }
                 ) {
-                    Text("去开启")
+                    Text(stringResource(R.string.go_enable))
                 }
             }
 
             // 偏好设置
             Text(
-                text = "偏好设置",
+                text = stringResource(R.string.preference_settings),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
@@ -259,7 +249,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "开启弹幕通知的应用",
+                    text = stringResource(R.string.enabled_danmaku_apps),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Icon(
@@ -278,7 +268,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "仅在横屏下开启弹幕通知",
+                    text = stringResource(R.string.landscape_only),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Switch(
@@ -297,7 +287,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "横屏下自动开启免打扰",
+                        text = stringResource(R.string.auto_dnd),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Switch(
@@ -306,7 +296,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                     )
                 }
                 Text(
-                    text = "弹幕通知仍旧生效。请注意，若其他应用有相似的功能，可能会产生冲突。",
+                    text = stringResource(R.string.dnd_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 16.dp, top = 4.dp)
@@ -315,7 +305,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
 
             // 关于
             Text(
-                text = "关于",
+                text = stringResource(R.string.about),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
@@ -335,7 +325,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "关于本应用",
+                    text = stringResource(R.string.about_app),
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Icon(

@@ -1,3 +1,26 @@
 <resources>
-    <string name="app_name">DanmakuNotification</string>
+    <string name="app_name">Danmaku Notification</string>
+    <string name="select_danmaku_apps">Select Danmaku Apps</string>
+    <string name="back">Back</string>
+    <string name="search">Search</string>
+    <string name="search_apps">Search apps</string>
+    <string name="no_apps_found">No apps found</string>
+    <string name="no_matching_apps">No matching apps</string>
+    <string name="danmaku_notification">Danmaku Notification</string>
+    <string name="version">1.0</string>
+    <string name="permission_settings">Permission Settings</string>
+    <string name="permission_description">Danmaku Notification requires necessary permissions to work properly.</string>
+    <string name="enable_notification_access">Enable Notification Access</string>
+    <string name="go_enable">Go Enable</string>
+    <string name="enable_overlay_permission">Enable Overlay Permission</string>
+    <string name="preference_settings">Preference Settings</string>
+    <string name="enabled_danmaku_apps">Enabled Danmaku Apps</string>
+    <string name="landscape_only">Enable Danmaku Only in Landscape</string>
+    <string name="auto_dnd">Auto Enable Do Not Disturb in Landscape</string>
+    <string name="dnd_note">Danmaku notifications remain effective. Note: Conflicts may occur if other apps have similar features.</string>
+    <string name="about">About</string>
+    <string name="about_app">About This App</string>
+    <string name="reconnect_notification">Reconnect Notification Service</string>
+    <string name="reconnect_success">Attempted to reconnect notification service</string>
+    <string name="enable_notification_prompt">Please enable notification permission to use danmaku notifications</string>
 </resources>

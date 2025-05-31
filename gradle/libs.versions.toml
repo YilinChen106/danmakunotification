@@ -22,6 +22,8 @@ compose-compiler = "2.0.20"
 androidx-material-icons = "1.7.4"
 androidx-navigation = "2.8.3"
 
+gson = "2.10.1"
+
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
@@ -43,6 +45,7 @@ androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", v
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-core", version.ref = "androidx-material-icons" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }

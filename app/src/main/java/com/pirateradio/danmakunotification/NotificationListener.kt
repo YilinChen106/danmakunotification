@@ -3,8 +3,10 @@ package com.pirateradio.danmakunotification
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -26,19 +28,36 @@ class NotificationListener : NotificationListenerService() {
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
         Log.d(TAG, "NotificationListenerService disconnected")
-        // 断开时尝试重新绑定
         requestRebind(ComponentName(this, NotificationListener::class.java))
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         Log.d(TAG, "Notification posted: ${sbn.packageName}")
         if (sbn.packageName == "android") return
-        // 检查应用是否启用弹幕通知
+
+        // 检查是否启用弹幕通知
         val enabledApps = loadEnabledApps()
         if (!enabledApps.contains(sbn.packageName)) {
             Log.d(TAG, "Skipping notification for ${sbn.packageName} (not enabled)")
             return
         }
+
+        // 检查是否仅限横屏
+        val prefs = getSharedPreferences("danmaku_prefs", Context.MODE_PRIVATE)
+        val onlyLandscape = prefs.getBoolean("only_landscape", false)
+        if (onlyLandscape && !isLandscape()) {
+            Log.d(TAG, "Skipping notification for ${sbn.packageName} (not in landscape)")
+            return
+        }
+
+        // 处理自动免打扰
+        val autoDnd = prefs.getBoolean("auto_dnd", false)
+        if (autoDnd && isLandscape()) {
+            enableDnd()
+        } else {
+            disableDnd()
+        }
+
         val packageName = sbn.packageName
         val title = sbn.notification.extras.getString("android.title") ?: ""
         val text = sbn.notification.extras.getString("android.text") ?: ""
@@ -67,7 +86,6 @@ class NotificationListener : NotificationListenerService() {
             val screenWidth = metrics.widthPixels
             val screenHeight = metrics.heightPixels
 
-            // 上半屏 4 条轨道
             val trackHeight = (screenHeight / 2) / 4
             val randomTrack = Random.nextInt(0, 4)
             val randomY = randomTrack * trackHeight + 20
@@ -95,7 +113,6 @@ class NotificationListener : NotificationListenerService() {
 
             wm.addView(danmakuView, params)
 
-            // 动画：从右到左
             ObjectAnimator.ofFloat(danmakuView, "translationX", 0f, -screenWidth.toFloat()).apply {
                 duration = 5000
                 addListener(object : AnimatorListenerAdapter() {
@@ -112,6 +129,27 @@ class NotificationListener : NotificationListenerService() {
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, "Error showing danmaku: ${e.message}")
+        }
+    }
+
+    private fun isLandscape(): Boolean {
+        val configuration = resources.configuration
+        return configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    }
+
+    private fun enableDnd() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (notificationManager.isNotificationPolicyAccessGranted) {
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+            Log.d(TAG, "Enabled Do Not Disturb")
+        }
+    }
+
+    private fun disableDnd() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (notificationManager.isNotificationPolicyAccessGranted) {
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+            Log.d(TAG, "Disabled Do Not Disturb")
         }
     }
 

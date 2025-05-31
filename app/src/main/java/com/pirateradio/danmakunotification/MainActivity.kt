@@ -2,6 +2,7 @@ package com.pirateradio.danmakunotification
 
 import android.content.ComponentName
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.Window
@@ -18,9 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,14 +29,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import android.service.notification.NotificationListenerService
 import androidx.annotation.RequiresApi
-import androidx.compose.material3.IconButton
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -95,12 +93,24 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(navController: androidx.navigation.NavController) {
     val context = LocalContext.current
     val onlyLandscape = remember { mutableStateOf(false) }
     val autoDnd = remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+
+    // 加载和保存仅横屏开关状态
+    val prefs = context.getSharedPreferences("danmaku_prefs", Context.MODE_PRIVATE)
+    LaunchedEffect(Unit) {
+        onlyLandscape.value = prefs.getBoolean("only_landscape", false)
+    }
+    LaunchedEffect(onlyLandscape.value) {
+        prefs.edit {
+            putBoolean("only_landscape", onlyLandscape.value)
+        }
+    }
 
     Scaffold(
         modifier = Modifier
@@ -291,6 +301,7 @@ fun MainScreen(navController: androidx.navigation.NavController) {
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Switch(
+                        enabled = false,
                         checked = autoDnd.value,
                         onCheckedChange = { autoDnd.value = it }
                     )

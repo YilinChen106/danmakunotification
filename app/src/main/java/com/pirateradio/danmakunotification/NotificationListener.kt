@@ -3,7 +3,6 @@ package com.pirateradio.danmakunotification
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
-import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.res.Configuration
@@ -42,20 +41,12 @@ class NotificationListener : NotificationListenerService() {
             return
         }
 
-        // 检查是否仅限横屏
+        // 检查仅横屏设置
         val prefs = getSharedPreferences("danmaku_prefs", Context.MODE_PRIVATE)
         val onlyLandscape = prefs.getBoolean("only_landscape", false)
         if (onlyLandscape && !isLandscape()) {
             Log.d(TAG, "Skipping notification for ${sbn.packageName} (not in landscape)")
             return
-        }
-
-        // 处理自动免打扰
-        val autoDnd = prefs.getBoolean("auto_dnd", false)
-        if (autoDnd && isLandscape()) {
-            enableDnd()
-        } else {
-            disableDnd()
         }
 
         val packageName = sbn.packageName
@@ -135,22 +126,6 @@ class NotificationListener : NotificationListenerService() {
     private fun isLandscape(): Boolean {
         val configuration = resources.configuration
         return configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    }
-
-    private fun enableDnd() {
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (notificationManager.isNotificationPolicyAccessGranted) {
-            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
-            Log.d(TAG, "Enabled Do Not Disturb")
-        }
-    }
-
-    private fun disableDnd() {
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (notificationManager.isNotificationPolicyAccessGranted) {
-            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
-            Log.d(TAG, "Disabled Do Not Disturb")
-        }
     }
 
     private fun loadEnabledApps(): Set<String> {

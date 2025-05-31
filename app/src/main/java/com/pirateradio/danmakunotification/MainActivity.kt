@@ -35,70 +35,74 @@ import androidx.core.view.WindowInsetsControllerCompat
 import android.app.NotificationManager
 import android.content.Context
 import android.service.notification.NotificationListenerService
-import androidx.annotation.RequiresApi
 import androidx.compose.material3.IconButton
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.pirateradio.danmakunotification.ui.theme.DanmakuNotificationTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Set up window properties
+        // 设置窗口属性
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        // Configure status and navigation bar
+        // 配置状态栏和导航栏
         setupSystemBars(window)
         setContent {
             DanmakuNotificationTheme {
-                MainScreen()
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "main") {
+                    composable("main") { MainScreen(navController) }
+                    composable("app_selection") { AppSelectionScreen(navController, LocalContext.current) }
+                }
             }
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O_MR1)
     override fun onResume() {
         super.onResume()
-        // Check and rebind NotificationListenerService on resume
+        // 在恢复时检查并重新绑定 NotificationListenerService
         checkAndRebindNotificationListener()
     }
 
     private fun setupSystemBars(window: Window) {
-        // Get the WindowInsetsController
+        // 获取 WindowInsetsController
         val controller = WindowCompat.getInsetsController(window, window.decorView)
-        // Set status bar text/icons appearance based on theme
+        // 根据主题设置状态栏文字/图标颜色
         controller.isAppearanceLightStatusBars = !isDarkTheme()
-        // Set navigation bar to transparent
+        // 设置导航栏透明
         window.navigationBarColor = android.graphics.Color.TRANSPARENT
-        // Ensure navigation bar icons are visible based on theme
+        // 根据主题设置导航栏图标颜色
         controller.isAppearanceLightNavigationBars = !isDarkTheme()
-        // Remove any scrim or background from navigation bar (API 29+)
+        // 移除导航栏背景（API 29+）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
     }
 
     private fun isDarkTheme(): Boolean {
-        // Simple check for dark theme based on system settings
+        // 检查系统是否为深色主题
         return resources.configuration.uiMode and
                 android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
                 android.content.res.Configuration.UI_MODE_NIGHT_YES
     }
 
-    @RequiresApi(Build.VERSION_CODES.O_MR1)
     private fun checkAndRebindNotificationListener() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val componentName = ComponentName(this, NotificationListener::class.java)
         val isEnabled = notificationManager.isNotificationListenerAccessGranted(componentName)
         if (isEnabled) {
-            // If permission is granted but service is not running, attempt to rebind
+            // 如果权限已授予但服务未运行，尝试重新绑定
             NotificationListenerService.requestRebind(componentName)
         } else {
-            // Prompt user to enable notification access
+            // 提示用户启用通知权限
             Toast.makeText(this, "请启用通知权限以使用弹幕通知", Toast.LENGTH_LONG).show()
         }
     }
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(navController: androidx.navigation.NavController) {
     val context = LocalContext.current
     val onlyLandscape = remember { mutableStateOf(false) }
     val autoDnd = remember { mutableStateOf(false) }
@@ -245,7 +249,7 @@ fun MainScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        Toast.makeText(context, "打开应用选择页面", Toast.LENGTH_SHORT).show()
+                        navController.navigate("app_selection")
                     }
                     .padding(vertical = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,

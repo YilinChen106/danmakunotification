@@ -20,6 +20,7 @@ kotlin = "2.0.20"
 compose-compiler = "2.0.20"
 
 androidx-material-icons = "1.7.4"
+androidx-navigation = "2.8.3"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
@@ -40,6 +41,9 @@ androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref =
 androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidx-ui-test-manifest" }
 
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-core", version.ref = "androidx-material-icons" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
+
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

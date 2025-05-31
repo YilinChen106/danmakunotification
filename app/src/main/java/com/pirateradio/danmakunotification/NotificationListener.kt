@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.ComponentName
+import android.content.Context
 import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -25,13 +26,19 @@ class NotificationListener : NotificationListenerService() {
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
         Log.d(TAG, "NotificationListenerService disconnected")
-        // Attempt to rebind when disconnected
+        // 断开时尝试重新绑定
         requestRebind(ComponentName(this, NotificationListener::class.java))
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         Log.d(TAG, "Notification posted: ${sbn.packageName}")
         if (sbn.packageName == "android") return
+        // 检查应用是否启用弹幕通知
+        val enabledApps = loadEnabledApps()
+        if (!enabledApps.contains(sbn.packageName)) {
+            Log.d(TAG, "Skipping notification for ${sbn.packageName} (not enabled)")
+            return
+        }
         val packageName = sbn.packageName
         val title = sbn.notification.extras.getString("android.title") ?: ""
         val text = sbn.notification.extras.getString("android.text") ?: ""
@@ -106,5 +113,10 @@ class NotificationListener : NotificationListenerService() {
             e.printStackTrace()
             Log.e(TAG, "Error showing danmaku: ${e.message}")
         }
+    }
+
+    private fun loadEnabledApps(): Set<String> {
+        val prefs = getSharedPreferences("danmaku_prefs", Context.MODE_PRIVATE)
+        return prefs.getStringSet("enabled_apps", emptySet()) ?: emptySet()
     }
 }

@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.material) // 新增：支持 Material Components
 
     implementation(libs.androidx.material.icons.extended) // 添加图标核心库
+    implementation(libs.androidx.navigation.compose)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

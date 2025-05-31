@@ -35,6 +35,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import android.app.NotificationManager
 import android.content.Context
 import android.service.notification.NotificationListenerService
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.IconButton
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -59,6 +60,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O_MR1)
     override fun onResume() {
         super.onResume()
         // 在恢复时检查并重新绑定 NotificationListenerService
@@ -87,6 +89,7 @@ class MainActivity : ComponentActivity() {
                 android.content.res.Configuration.UI_MODE_NIGHT_YES
     }
 
+    @RequiresApi(Build.VERSION_CODES.O_MR1)
     private fun checkAndRebindNotificationListener() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val componentName = ComponentName(this, NotificationListener::class.java)

@@ -7,32 +7,53 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.navigation.NavController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppSelectionScreen(navController: NavController, context: Context) {
-    // 加载已安装的应用和启用状态
-    val apps = remember { getInstalledApps(context) }
-    Log.d("AppSelectionScreen", "Loaded ${apps.size} apps") // 调试日志
-
-    // 加载启用的应用
+    // 状态管理
+    var apps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var searchQuery by remember { mutableStateOf("") }
     val enabledApps = remember { mutableStateMapOf<String, Boolean>().apply {
         loadEnabledApps(context).forEach { packageName ->
             this[packageName] = true
         }
     } }
+    val scope = rememberCoroutineScope()
+
+    // 异步加载应用列表
+    LaunchedEffect(Unit) {
+        scope.launch {
+            isLoading = true
+            apps = withContext(Dispatchers.IO) { getInstalledApps(context) }
+            isLoading = false
+            Log.d("AppSelectionScreen", "Loaded ${apps.size} apps")
+        }
+    }
+
+    // 过滤应用列表基于搜索关键字
+    val filteredApps = apps.filter { app ->
+        app.name.contains(searchQuery, ignoreCase = true)
+    }
 
     Scaffold(
         topBar = {
@@ -62,40 +83,75 @@ fun AppSelectionScreen(navController: NavController, context: Context) {
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        if (apps.isEmpty()) {
-            // 显示空状态
-            Box(
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ) {
+            // 搜索栏
+            TextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "未找到可用的应用",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                placeholder = { Text("搜索应用") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = "搜索"
+                    )
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
                 )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-            ) {
-                items(apps) { app ->
-                    AppItem(
-                        app = app,
-                        isEnabled = enabledApps[app.packageName] ?: false,
-                        onToggle = { isChecked ->
-                            enabledApps[app.packageName] = isChecked
-                            saveEnabledApps(context, enabledApps.filterValues { it }.keys)
+            )
+
+            // 内容区域
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                filteredApps.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (searchQuery.isEmpty()) "未找到可用的应用" else "没有匹配的应用",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                else -> {
+                    LazyColumn {
+                        items(filteredApps) { app ->
+                            AppItem(
+                                app = app,
+                                isEnabled = enabledApps[app.packageName] ?: false,
+                                onToggle = { isChecked ->
+                                    enabledApps[app.packageName] = isChecked
+                                    saveEnabledApps(context, enabledApps.filterValues { it }.keys)
+                                }
+                            )
+                            Divider(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                            )
                         }
-                    )
-                    Divider(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                    )
+                    }
                 }
             }
         }
@@ -152,7 +208,7 @@ private fun getInstalledApps(context: Context): List<AppInfo> {
     val apps = try {
         pm.getInstalledApplications(PackageManager.GET_META_DATA)
             .filter { appInfo ->
-                // 放宽过滤条件，包含所有用户安装的应用
+                // 仅过滤本应用
                 appInfo.packageName != context.packageName
             }
             .map { appInfo ->

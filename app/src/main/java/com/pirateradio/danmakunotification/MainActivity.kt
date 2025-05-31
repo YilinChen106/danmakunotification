@@ -1,5 +1,6 @@
 package com.pirateradio.danmakunotification
 
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -14,9 +15,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import android.app.NotificationManager
+import android.content.Context
+import android.service.notification.NotificationListenerService
+import androidx.annotation.RequiresApi
+import androidx.compose.material3.IconButton
 import com.pirateradio.danmakunotification.ui.theme.DanmakuNotificationTheme
 
 class MainActivity : ComponentActivity() {
@@ -44,6 +51,13 @@ class MainActivity : ComponentActivity() {
                 MainScreen()
             }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O_MR1)
+    override fun onResume() {
+        super.onResume()
+        // Check and rebind NotificationListenerService on resume
+        checkAndRebindNotificationListener()
     }
 
     private fun setupSystemBars(window: Window) {
@@ -66,6 +80,20 @@ class MainActivity : ComponentActivity() {
         return resources.configuration.uiMode and
                 android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
                 android.content.res.Configuration.UI_MODE_NIGHT_YES
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O_MR1)
+    private fun checkAndRebindNotificationListener() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val componentName = ComponentName(this, NotificationListener::class.java)
+        val isEnabled = notificationManager.isNotificationListenerAccessGranted(componentName)
+        if (isEnabled) {
+            // If permission is granted but service is not running, attempt to rebind
+            NotificationListenerService.requestRebind(componentName)
+        } else {
+            // Prompt user to enable notification access
+            Toast.makeText(this, "请启用通知权限以使用弹幕通知", Toast.LENGTH_LONG).show()
+        }
     }
 }
 
@@ -93,7 +121,6 @@ fun MainScreen() {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-
                     .padding(vertical = 24.dp)
             ) {
                 Row(
@@ -122,6 +149,20 @@ fun MainScreen() {
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(
+                        onClick = {
+                            val componentName = ComponentName(context, NotificationListener::class.java)
+                            NotificationListenerService.requestRebind(componentName)
+                            Toast.makeText(context, "已尝试重新连接通知服务", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Refresh,
+                            contentDescription = "重新连接通知服务",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -224,7 +265,7 @@ fun MainScreen() {
             // 仅横屏
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically

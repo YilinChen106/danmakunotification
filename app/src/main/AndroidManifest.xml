@@ -3,28 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.pirateradio.danmakunotification">
 
-    <!-- 通知监听权限，用户需手动授予 -->
-    <uses-permission
-        android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-        tools:ignore="ProtectedPermissions" />
     <!-- 悬浮窗权限 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- 前台服务权限 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+
 
     <application
-        android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        tools:targetApi="31">
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -33,13 +27,21 @@
 
         <service
             android:name=".NotificationListener"
-            android:label="NotificationListener"
+            android:label="@string/app_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            android:exported="true">
+            android:exported="true"
+            android:foregroundServiceType="specialUse">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
+            <meta-data
+                android:name="android.service.notification.default_enabled"
+                android:value="true" />
         </service>
+
+        <meta-data
+            android:name="android.foregroundServiceType"
+            android:resource="@xml/foreground_service_types" />
     </application>
 
 </manifest>

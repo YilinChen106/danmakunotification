@@ -3,9 +3,11 @@ package com.pirateradio.danmakunotification
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.content.ComponentName
 import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
 import android.graphics.PixelFormat
@@ -13,7 +15,22 @@ import android.util.DisplayMetrics
 import kotlin.random.Random
 
 class NotificationListener : NotificationListenerService() {
+    private val TAG = "NotificationListener"
+
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        Log.d(TAG, "NotificationListenerService connected")
+    }
+
+    override fun onListenerDisconnected() {
+        super.onListenerDisconnected()
+        Log.d(TAG, "NotificationListenerService disconnected")
+        // Attempt to rebind when disconnected
+        requestRebind(ComponentName(this, NotificationListener::class.java))
+    }
+
     override fun onNotificationPosted(sbn: StatusBarNotification) {
+        Log.d(TAG, "Notification posted: ${sbn.packageName}")
         if (sbn.packageName == "android") return
         val packageName = sbn.packageName
         val title = sbn.notification.extras.getString("android.title") ?: ""
@@ -21,7 +38,9 @@ class NotificationListener : NotificationListenerService() {
         showDanmaku(packageName, title, text)
     }
 
-    override fun onNotificationRemoved(sbn: StatusBarNotification) {}
+    override fun onNotificationRemoved(sbn: StatusBarNotification) {
+        Log.d(TAG, "Notification removed: ${sbn.packageName}")
+    }
 
     private fun showDanmaku(packageName: String, title: String, text: String) {
         try {
@@ -85,6 +104,7 @@ class NotificationListener : NotificationListenerService() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e(TAG, "Error showing danmaku: ${e.message}")
         }
     }
 }
